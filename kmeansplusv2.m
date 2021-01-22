@@ -1,4 +1,4 @@
-clc;
+ clc;
 clear;
 close all;
 
@@ -8,8 +8,8 @@ n=100;
 xm=100;
 ym=100;
 sinkx=50;
-sinky=200;
-dead_nodes=0
+sinky=50;
+dead_nodes=0;
 %Deklarasi Energi%
 %Inisialisasi energi pada setiap node(Joules)% 
 Eo=2; %Satuan joules
@@ -19,6 +19,7 @@ ERx=50*10^(-9); %Satuan joules/bit
 Eamp=100*10^(-12); %Satuan joules/bit/m^2 
 EDA=5*10^(-9); %Satuan joules/bit
 k=4000; %unit bits
+p=0.05; % a 5 percent of the total amount of nodes used in the network is proposed to give good results
 % Round Simulasi%
 rnd=1;
 round=2;
@@ -42,6 +43,7 @@ for i=1:n
     SN(i).tel=0;	% sudah berapa kali node di set sebagai CH
     SN(i).rn=0;     % round ke berapa node terpilih sebagai CH
     SN(i).chid=0;   % id node sebagai CH
+     SN(i).rleft=0;  % rounds left for node to become available for Cluster Head election
     x(i,1)=SN(i).x;
     y(i,1)=SN(i).y;
     hold on;
@@ -55,9 +57,6 @@ end
 %%% Set Up Phase %%%
 %%Proses K-Means++%%
 k=input('Masukkan jumlah klaster : ');
-
-while(rnd~=round)
-    disp('Round ke-'),disp(rnd)
     % Reseting Previous Amount Of Cluster Heads In the Network %
 	CLheads=0;
     % Reseting Previous Amount Of Energy Consumed In the Network on the Previous Round %
@@ -79,12 +78,9 @@ while(rnd~=round)
     end
     [e s]=max(d); %mencari nilai terbesar dari distance yang dipilih sebagai C1
     center=[center;[x(s) y(s)]]; %menyimpan koordinat c1 dalam array
-    SN(s).role=1;
-    SN(s).dts=max(d);
-    SN(s).tel=SN(s).tel+1;
-    SN(s).rn=rnd;
     x(s)=[]; %mengosongkan kembali nilai x dan y
     y(s)=[];
+    d=[];
 
     %Proses mencari C selanjutnya
     r=1;
@@ -99,10 +95,7 @@ while(rnd~=round)
         end
         [e s]=max(d); %Mencari data jarak dengan nilai max/tertinggi
         center=[center;[x(s) y(s)]]; %Menyimpan data node dengan jarak tertinggi pada aray CH
-        SN(s).role=1;
-        SN(s).dts=max(d);
         SN(s).tel=SN(s).tel+1;
-        SN(s).rn=rnd;
         x(s)=[]; %mengosongkan kembali nilai x, y dan d
         y(s)=[];
         [r c]=size(center);
@@ -140,8 +133,11 @@ while(rnd~=round)
                 data=[data sqrt((SN(i).x-cx(j))^2+(SN(i).y-cy(j))^2)];
             end
             [gc index]=min(data); %Mencari jarak terendah node dengan CH
+            
             outputx{index}=[outputx{index} SN(i).x]; %Mengelompokkan data sesuai CH terdekat
             outputy{index}=[outputy{index} SN(i).y]; %Mengelompokkan data sesuai CH terdekat
+            SN(i).cluster=index; %Menyimpan nilai cluster tiap node
+            SN(i).dtch=min(data); %Menyimpan jarak node dengan pusat cluster
         end
         gmckx=[];
         gmcky=[];
@@ -177,13 +173,25 @@ while(rnd~=round)
         xf=outputx{i};
         yf=outputy{i};
         if(i==1)
-           plot(xf,yf,'ro','linewidth',3);
-        elseif(i==2)
            plot(xf,yf,'bo','linewidth',3);
-        elseif(i==3)
-           plot(xf,yf,'yo','linewidth',3);
-        else
+        elseif(i==2)
            plot(xf,yf,'go','linewidth',3);
+        elseif(i==3)
+           plot(xf,yf,'ro','linewidth',3);
+        elseif(i==4)
+           plot(xf,yf,'co','linewidth',3);
+        elseif(i==5)
+           plot(xf,yf,'mo','linewidth',3);
+        elseif(i==6)
+           plot(xf,yf,'yo','linewidth',3);
+        elseif(i==7)
+           plot(xf,yf,'ko','linewidth',3);
+        elseif(i==8)
+           plot(xf,yf,'rx','linewidth',3);
+        elseif(i==9)
+           plot(xf,yf,'bx','linewidth',3);
+        else
+           plot(xf,yf,'gx','linewidth',3);
         end
         hold on;
         grid on;
@@ -194,9 +202,20 @@ while(rnd~=round)
     xlabel '(m)';
     ylabel '(m)';
     hold on;
-end
-
-
-
-
     
+    %Pemilihan CH
+    % Threshold Value %
+	t=(p/(1-p*(mod(rnd,1/p))));
+    
+    % Re-election Value %
+    tleft=mod(rnd,1/p);
+ 
+	% Reseting Previous Amount Of Cluster Heads In the Network %
+	CLheads=0;
+    
+    % Reseting Previous Amount Of Energy Consumed In the Network on the Previous Round %
+    energy=0;
+    
+    %Pemilihan CH tiap cluster
+    
+   
