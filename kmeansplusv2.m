@@ -67,7 +67,7 @@ k=input('Masukkan jumlah klaster : ');
     starty=[];
     center=[startx starty]; %menyimpan nilai C1
     d=[];
-    for i=1:length(x)
+    for i=1:n
         SN(i).cluster=0;    % reseting cluster in which the node belongs to
         SN(i).role=0;       % reseting node role
         SN(i).chid=0;       % reseting cluster head id
@@ -85,7 +85,7 @@ k=input('Masukkan jumlah klaster : ');
     %Proses mencari C selanjutnya
     r=1;
     while(r~=k)
-        for i=1:length(x)
+        for i=1:n
             g=[SN(i).x SN(i).y]; %Mengambil data kordinat node ke i
             ka=dsearchn(center,g); %Mencari node terdekat dengan data pusat klaster
             nearestx=center(ka,1); %Mencari data terdekat pada nilai kordinat x
@@ -127,7 +127,7 @@ k=input('Masukkan jumlah klaster : ');
     while(temp==0) %Melakukan perulangan untuk membentuk klaster hingga nilai CH tidak mengalami perubahan
         mean_oldx=mean_newx; %menyamakan nilai pusat klaster lama dan baru
         mean_oldy=mean_newy;
-        for(i=1:length(x)) %perulangan mencari jarak setiap node
+        for(i=1:n) %perulangan mencari jarak setiap node
             data=[];
             for(j=1:length(cx)) %mencari jarak setiap node dengan setiap cluster head
                 data=[data sqrt((SN(i).x-cx(j))^2+(SN(i).y-cy(j))^2)];
@@ -217,5 +217,31 @@ k=input('Masukkan jumlah klaster : ');
     energy=0;
     
     %Pemilihan CH tiap cluster
-    
+    for i=1:k
+        for j=1:n
+            if(SN(j).cluster==i)
+                SN(j).role=0;       % reseting node role
+                SN(j).chid=0;       % reseting cluster head id
+                if(SN(j).rleft>0)
+                    SN(j).rleft=SN(j).rleft-1;
+                end
+                if (SN(j).E>0) && (SN(j).rleft==0)
+                    generate=rand;	
+                    if generate< t
+                    SN(j).role=1;	% assigns the node role of acluster head
+                    SN(j).rn=rnd;	% Assigns the round that the cluster head was elected to the data table
+                    SN(j).tel=SN(j).tel + 1;   
+                    SN(j).rleft=1/p-tleft;    % rounds for which the node will be unable to become a CH
+                    SN(j).dts=sqrt((sinkx-SN(j).x)^2 + (sinky-SN(j).y)^2); % calculates the distance between the sink and the cluster hea
+                    CLheads=CLheads+1;	% sum of cluster heads that have been elected 
+                    SN(j).cluster=CLheads; % cluster of which the node got elected to be cluster head
+                    CL(CLheads).x=SN(j).x; % X-axis coordinates of elected cluster head
+                    CL(CLheads).y=SN(j).y; % Y-axis coordinates of elected cluster head
+                    CL(CLheads).id=i; % Assigns the node ID of the newly elected cluster head to an array
+                    end
+                end
+            end
+        end 
+    end
+   
    
