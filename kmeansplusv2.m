@@ -1,4 +1,4 @@
- clc;
+clc;
 clear;
 close all;
 
@@ -18,21 +18,19 @@ ETx=50*10^(-9); %Satuan joules/bit
 ERx=50*10^(-9); %Satuan joules/bit
 Eamp=100*10^(-12); %Satuan joules/bit/m^2 
 EDA=5*10^(-9); %Satuan joules/bit
-k=4000; %unit bits
-p=0.05; % a 5 percent of the total amount of nodes used in the network is proposed to give good results
-% Round Simulasi%
+kk=4000; %unit bits
 rnd=1;
-round=2;
 %Nomer node saat iterasi%
 transmissions=0;
 temp_val=0;
 flag1stdead=0;
-
+x=xlsread('node','A1:A100');
+y=xlsread('node','B1:B100');
 %Membentuk Topologi Awal%
 for i=1:n
     SN(i).id=i;	%Sensor Id
-    SN(i).x=rand(1,1)*xm;
-    SN(i).y=rand(1,1)*ym;
+    SN(i).x=x(i);
+    SN(i).y=y(i);
     SN(i).E=Eo;     % set energi node sama dengan eo"
     SN(i).role=0;   % set role node jika node biasa =0 dan jika sebagai CH set =1
     SN(i).cluster=0;	% set node berada pada cluster mana, secara default set 0
@@ -43,9 +41,8 @@ for i=1:n
     SN(i).tel=0;	% sudah berapa kali node di set sebagai CH
     SN(i).rn=0;     % round ke berapa node terpilih sebagai CH
     SN(i).chid=0;   % id node sebagai CH
-     SN(i).rleft=0;  % rounds left for node to become available for Cluster Head election
-    x(i,1)=SN(i).x;
-    y(i,1)=SN(i).y;
+    SN(i).rleft=0;  % rounds left for node to become available for Cluster Head election
+    SN(i).re=Eo;
     hold on;
     figure(1)
     plot(xm,ym,SN(i).x,SN(i).y,'ob',sinkx,sinky,'*r');
@@ -53,6 +50,7 @@ for i=1:n
     xlabel '(m)';
     ylabel '(m)';
 end
+
 
 %%% Set Up Phase %%%
 %%Proses K-Means++%%
@@ -201,47 +199,44 @@ k=input('Masukkan jumlah klaster : ');
     title 'Wireless Sensor Network';
     xlabel '(m)';
     ylabel '(m)';
-    hold on;
+    hold on;    
     
     %Pemilihan CH
-    % Threshold Value %
-	t=(p/(1-p*(mod(rnd,1/p))));
-    
-    % Re-election Value %
-    tleft=mod(rnd,1/p);
- 
 	% Reseting Previous Amount Of Cluster Heads In the Network %
 	CLheads=0;
     
     % Reseting Previous Amount Of Energy Consumed In the Network on the Previous Round %
     energy=0;
-    
+
     %Pemilihan CH tiap cluster
     for i=1:k
         for j=1:n
-            if(SN(j).cluster==i)
-                SN(j).role=0;       % reseting node role
-                SN(j).chid=0;       % reseting cluster head id
+            if(SN(j).cluster==i && SN(j).role==0)
                 if(SN(j).rleft>0)
                     SN(j).rleft=SN(j).rleft-1;
                 end
-                if (SN(j).E>0) && (SN(j).rleft==0)
-                    generate=rand;	
-                    if generate< t
-                    SN(j).role=1;	% assigns the node role of acluster head
-                    SN(j).rn=rnd;	% Assigns the round that the cluster head was elected to the data table
-                    SN(j).tel=SN(j).tel + 1;   
-                    SN(j).rleft=1/p-tleft;    % rounds for which the node will be unable to become a CH
-                    SN(j).dts=sqrt((sinkx-SN(j).x)^2 + (sinky-SN(j).y)^2); % calculates the distance between the sink and the cluster hea
-                    CLheads=CLheads+1;	% sum of cluster heads that have been elected 
-                    SN(j).cluster=CLheads; % cluster of which the node got elected to be cluster head
-                    CL(CLheads).x=SN(j).x; % X-axis coordinates of elected cluster head
-                    CL(CLheads).y=SN(j).y; % Y-axis coordinates of elected cluster head
-                    CL(CLheads).id=i; % Assigns the node ID of the newly elected cluster head to an array
+                if (SN(j).E>0) && (SN(j).rleft==0 && SN(j).role==0)
+                    for l=1:n
+                        if(SN(j).re>=SN(l).re && SN(j).cluster==SN(l).cluster) %jika re lebih besar pada klaster yang sama
+                            SN(j).role=1;	% assigns the node role of acluster head
+                            SN(j).tel=SN(j).tel + 1;   
+                            SN(j).rleft=1;    % rounds for which the node will be unable to become a CH
+                            SN(j).dts=sqrt((sinkx-SN(j).x)^2 + (sinky-SN(j).y)^2); % calculates the distance between the sink and the cluster hea
+                            CLheads=CLheads+1;	% sum of cluster heads that have been elected 
+                            SN(j).cluster=CLheads; % cluster of which the node got elected to be cluster head
+                            CL(CLheads).x=SN(j).x; % X-axis coordinates of elected cluster head
+                            CL(CLheads).y=SN(j).y; % Y-axis coordinates of elected cluster head
+                            CL(CLheads).id=i; % Assigns the node ID of the newly elected cluster head to an array
+                            break
+                        end
+                    end
+                    if(SN(j).role==1)
+                        break
                     end
                 end
             end
         end 
     end
+   
    
    
