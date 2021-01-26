@@ -10,20 +10,20 @@ ym=100;
 sinkx=50;
 sinky=50;
 dead_nodes=0;
+operating_nodes=n;
+total_energi=[];
+total_dn=[];
+total_na=[];
 %Deklarasi Energi%
 %Inisialisasi energi pada setiap node(Joules)% 
-Eo=2; %Satuan joules
+Eo=0.5; %Satuan joules
 Eelec=50*10^(-9); %Satuan joules/bit
 ETx=50*10^(-9); %Satuan joules/bit
 ERx=50*10^(-9); %Satuan joules/bit
-Eamp=100*10^(-12); %Satuan joules/bit/m^2 
+Eamp=130*10^(-12); %Satuan joules/bit/m^2 
 EDA=5*10^(-9); %Satuan joules/bit
 kk=4000; %unit bits
 rnd=1;
-%Nomer node saat iterasi%
-transmissions=0;
-temp_val=0;
-flag1stdead=0;
 x=xlsread('node','A1:A100');
 y=xlsread('node','B1:B100');
 %Membentuk Topologi Awal%
@@ -40,7 +40,7 @@ for i=1:n
     SN(i).dts=0;    % jarak node dengan Sink/BS
     SN(i).tel=0;	% sudah berapa kali node di set sebagai CH
     SN(i).rn=0;     % round ke berapa node terpilih sebagai CH
-    SN(i).chid=0;   % id node sebagai CH
+    SN(i).chid=0;   % id node terhubung ke CH mana
     SN(i).rleft=0;  % rounds left for node to become available for Cluster Head election
     SN(i).re=Eo;
     hold on;
@@ -135,6 +135,7 @@ k=input('Masukkan jumlah klaster : ');
             outputx{index}=[outputx{index} SN(i).x]; %Mengelompokkan data sesuai CH terdekat
             outputy{index}=[outputy{index} SN(i).y]; %Mengelompokkan data sesuai CH terdekat
             SN(i).cluster=index; %Menyimpan nilai cluster tiap node
+            SN(i).chid=index;
             SN(i).dtch=min(data); %Menyimpan jarak node dengan pusat cluster
         end
         gmckx=[];
@@ -237,6 +238,70 @@ k=input('Masukkan jumlah klaster : ');
             end
         end 
     end
+    % Fixing the size of "CL" array %
+	CL=CL(1:CLheads);
+    %Menghitung jarak node dengan masing" CH
+    for i=1:n
+        if(SN(i).role==0 && SN(i).E>0)
+            for j=1:CLheads
+                if(SN(i).cluster==j)
+                     SN(i).dtch=sqrt((CL(j).x-SN(i).x)^2 + (CL(j).y-SN(i).y)^2);
+                end
+            end
+        end
+    end
+%%%Steady State Phase%%%
+% Energy Dissipation for normal nodes %
+    for i=1:n
+       if (SN(i).cond==1 && SN(i).role==0)
+       	if (SN(i).E>0)
+            ETx= Eelec*k + Eamp * k * SN(i).dtch^2;
+            SN(i).E=SN(i).E - ETx;
+            energy=energy+ETx;
+        end 
+        % Dissipation for cluster head during reception
+        if SN(SN(i).chid).E>0 && SN(SN(i).chid).cond==1 && SN(SN(i).chid).role==1
+            ERx=(Eelec+EDA)*k;
+            energy=energy+ERx;
+            SN(SN(i).chid).E=SN(SN(i).chid).E - ERx;
+             if SN(SN(i).chid).E<=0  % if cluster heads energy depletes with reception
+                SN(SN(i).chid).cond=0;
+                SN(SN(i).chid).rop=rnd;
+                dead_nodes=dead_nodes +1;
+                operating_nodes= operating_nodes - 1
+             end
+        end
+       end  
+        if SN(i).E<=0 % if nodes energy depletes with transmission
+            dead_nodes=dead_nodes +1;
+            operating_nodes= operating_nodes - 1
+            SN(i).cond=0;
+            SN(i).chid=0;
+            SN(i).rop=rnd;
+        end
+    end
+
+% Energy Dissipation for cluster head nodes %   
+   for i=1:n
+     if (SN(i).cond==1 && SN(i).role==1)
+         if (SN(i).E>0)
+            ETx= (Eelec+EDA)*k + Eamp * k * SN(i).dts^2;
+            SN(i).E=SN(i).E - ETx;
+            energy=energy+ETx;
+         end
+         if (SN(i).E<=0)     % if cluster heads energy depletes with transmission
+             dead_nodes=dead_nodes +1;
+             operating_nodes= operating_nodes - 1;
+             SN(i).cond=0;
+             SN(i).rop=rnd;
+         end
+     end
+   end
    
+   %Kalkulasi total energi, death node & node alive
+   total_energi(rnd)=energy;
+   total_dn(rnd)=dead_nodes;
+   total_na(rnd)=operating_nodes;
    
-   
+   % Next Round %
+    % rnd= rnd +1;
