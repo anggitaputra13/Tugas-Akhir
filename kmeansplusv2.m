@@ -12,18 +12,20 @@ sinky=50;
 dead_nodes=0;
 operating_nodes=n;
 total_energi=[];
+total_energi2=0;
 total_dn=[];
 total_na=[];
 %Deklarasi Energi%
 %Inisialisasi energi pada setiap node(Joules)% 
 Eo=0.5; %Satuan joules
-Eelec=50*10^(-9); %Satuan joules/bit
-ETx=50*10^(-9); %Satuan joules/bit
-ERx=50*10^(-9); %Satuan joules/bit
-Eamp=130*10^(-12); %Satuan joules/bit/m^2 
-EDA=5*10^(-9); %Satuan joules/bit
+Eelec=50*10^(-8); %Satuan joules/bit
+ETx=50*10^(-8); %Satuan joules/bit
+ERx=50*10^(-8); %Satuan joules/bit
+Eamp=13*10^(-8); %Satuan joules/bit/m^2 
+EDA=5*10^(-8); %Satuan joules/bit
 kk=4000; %unit bits
-rnd=1;
+rnd=1; %penanda iterasi
+round=150; %jumlah putaran/iterasi yang ditentukan
 x=xlsread('node','A1:A100');
 y=xlsread('node','B1:B100');
 %Membentuk Topologi Awal%
@@ -42,7 +44,8 @@ for i=1:n
     SN(i).rn=0;     % round ke berapa node terpilih sebagai CH
     SN(i).chid=0;   % id node terhubung ke CH mana
     SN(i).rleft=0;  % rounds left for node to become available for Cluster Head election
-    SN(i).re=Eo;
+    SN(i).re=Eo;    % residual energi pada node
+    SN(i).jch=0;    % mengetahui berapa kali node sebagai CH
     hold on;
     figure(1)
     plot(xm,ym,SN(i).x,SN(i).y,'ob',sinkx,sinky,'*r');
@@ -59,10 +62,13 @@ k=input('Masukkan jumlah klaster : ');
 	CLheads=0;
     % Reseting Previous Amount Of Energy Consumed In the Network on the Previous Round %
     energy=0;
-    
+while rnd<=round
+    rnd
     %Penentua C1 Awal dengan mencari jarak terjauh dengan BS
     startx=[];
     starty=[];
+    x=xlsread('node','A1:A100');
+    y=xlsread('node','B1:B100');
     center=[startx starty]; %menyimpan nilai C1
     d=[];
     for i=1:n
@@ -99,18 +105,20 @@ k=input('Masukkan jumlah klaster : ');
         [r c]=size(center);
         d=[];
     end
-    figure(2) %Menampilkan koordinat titik CH pada WSN
-    disp(center);
-    plot(center(:,1),center(:,2),'ko','linewidth',3);
-    hold on;
-    grid on;
-    for i=1:n
-        plot(xm,ym,SN(i).x,SN(i).y,'ob',sinkx,sinky,'*r');
-        title 'Wireless Sensor Network';
-        xlabel '(m)';
-        ylabel '(m)'; 
+    if(rnd==round) %Menampilkan data round terakhir
+        figure(2) %Menampilkan koordinat titik CH pada WSN
+        disp(center);
+        plot(center(:,1),center(:,2),'ko','linewidth',3);
+        hold on;
+        grid on;
+        for i=1:n
+            plot(xm,ym,SN(i).x,SN(i).y,'ob',sinkx,sinky,'*r');
+            title 'Wireless Sensor Network';
+            xlabel '(m)';
+            ylabel '(m)'; 
+        end 
     end
-
+    
     %Proses pengelompokan node dengan cluster
     cx=center(:,1); %Menyimpan nilai kordinat x CH pada var cx
     cy=center(:,2); %Menyimpan nilai kordinat y CH pada var cy
@@ -164,48 +172,49 @@ k=input('Masukkan jumlah klaster : ');
         end
         iter=iter+1;
     end
-    disp('Jumah iterasi yang dilakukan adalah: '),disp(iter)
+    jml_iter(rnd)=iter;
     celldisp(outputx); %Menampilkan nilai pada kordinat x fix setiap node dan klaster
     celldisp(outputy); %Menampilkan nilai pada kordinat y fix setiap node dan klaster
-    figure;
-    for i=1:k %Perulangan untuk ploting node sesuai klaster pada WSN
-        xf=outputx{i};
-        yf=outputy{i};
-        if(i==1)
-           plot(xf,yf,'bo','linewidth',3);
-        elseif(i==2)
-           plot(xf,yf,'go','linewidth',3);
-        elseif(i==3)
-           plot(xf,yf,'ro','linewidth',3);
-        elseif(i==4)
-           plot(xf,yf,'co','linewidth',3);
-        elseif(i==5)
-           plot(xf,yf,'mo','linewidth',3);
-        elseif(i==6)
-           plot(xf,yf,'yo','linewidth',3);
-        elseif(i==7)
-           plot(xf,yf,'ko','linewidth',3);
-        elseif(i==8)
-           plot(xf,yf,'rx','linewidth',3);
-        elseif(i==9)
-           plot(xf,yf,'bx','linewidth',3);
-        else
-           plot(xf,yf,'gx','linewidth',3);
+    if(rnd==round) %Menampilkan data round terakhir
+        figure;
+        for i=1:k %Perulangan untuk ploting node sesuai klaster pada WSN
+            xf=outputx{i};
+            yf=outputy{i};
+            if(i==1)
+               plot(xf,yf,'bo','linewidth',3);
+            elseif(i==2)
+               plot(xf,yf,'go','linewidth',3);
+            elseif(i==3)
+               plot(xf,yf,'ro','linewidth',3);
+            elseif(i==4)
+               plot(xf,yf,'co','linewidth',3);
+            elseif(i==5)
+               plot(xf,yf,'mo','linewidth',3);
+            elseif(i==6)
+               plot(xf,yf,'yo','linewidth',3);
+            elseif(i==7)
+               plot(xf,yf,'ko','linewidth',3);
+            elseif(i==8)
+               plot(xf,yf,'rx','linewidth',3);
+            elseif(i==9)
+               plot(xf,yf,'bx','linewidth',3);
+            else
+               plot(xf,yf,'gx','linewidth',3);
+            end
+            hold on;
+            grid on;
         end
-        hold on;
-        grid on;
+        figure(3)
+        plot(xm,ym,sinkx,sinky,'*r');
+        title 'Wireless Sensor Network';
+        xlabel '(m)';
+        ylabel '(m)';
+        hold on;    
     end
-    figure(3)
-    plot(xm,ym,sinkx,sinky,'*r');
-    title 'Wireless Sensor Network';
-    xlabel '(m)';
-    ylabel '(m)';
-    hold on;    
     
     %Pemilihan CH
 	% Reseting Previous Amount Of Cluster Heads In the Network %
 	CLheads=0;
-    
     % Reseting Previous Amount Of Energy Consumed In the Network on the Previous Round %
     energy=0;
 
@@ -220,8 +229,9 @@ k=input('Masukkan jumlah klaster : ');
                     for l=1:n
                         if(SN(j).re>=SN(l).re && SN(j).cluster==SN(l).cluster) %jika re lebih besar pada klaster yang sama
                             SN(j).role=1;	% assigns the node role of acluster head
+                            SN(j).jch=SN(j).jch+1;
                             SN(j).tel=SN(j).tel + 1;   
-                            SN(j).rleft=1;    % rounds for which the node will be unable to become a CH
+                            SN(j).rleft=k/2;    % rounds for which the node will be unable to become a CH
                             SN(j).dts=sqrt((sinkx-SN(j).x)^2 + (sinky-SN(j).y)^2); % calculates the distance between the sink and the cluster hea
                             CLheads=CLheads+1;	% sum of cluster heads that have been elected 
                             SN(j).cluster=CLheads; % cluster of which the node got elected to be cluster head
@@ -251,15 +261,16 @@ k=input('Masukkan jumlah klaster : ');
         end
     end
 %%%Steady State Phase%%%
-% Energy Dissipation for normal nodes %
+% Perhitungan energi pada node biasa %
     for i=1:n
        if (SN(i).cond==1 && SN(i).role==0)
        	if (SN(i).E>0)
             ETx= Eelec*k + Eamp * k * SN(i).dtch^2;
             SN(i).E=SN(i).E - ETx;
+            SN(i).re=SN(i).E;
             energy=energy+ETx;
         end 
-        % Dissipation for cluster head during reception
+        % Perhitungan energi saat CH menerima data yg dikirim node
         if SN(SN(i).chid).E>0 && SN(SN(i).chid).cond==1 && SN(SN(i).chid).role==1
             ERx=(Eelec+EDA)*k;
             energy=energy+ERx;
@@ -268,13 +279,13 @@ k=input('Masukkan jumlah klaster : ');
                 SN(SN(i).chid).cond=0;
                 SN(SN(i).chid).rop=rnd;
                 dead_nodes=dead_nodes +1;
-                operating_nodes= operating_nodes - 1
+                operating_nodes= operating_nodes - 1;
              end
         end
        end  
         if SN(i).E<=0 % if nodes energy depletes with transmission
             dead_nodes=dead_nodes +1;
-            operating_nodes= operating_nodes - 1
+            operating_nodes= operating_nodes - 1;
             SN(i).cond=0;
             SN(i).chid=0;
             SN(i).rop=rnd;
@@ -287,6 +298,7 @@ k=input('Masukkan jumlah klaster : ');
          if (SN(i).E>0)
             ETx= (Eelec+EDA)*k + Eamp * k * SN(i).dts^2;
             SN(i).E=SN(i).E - ETx;
+            SN(i).re=SN(i).E;
             energy=energy+ETx;
          end
          if (SN(i).E<=0)     % if cluster heads energy depletes with transmission
@@ -299,9 +311,18 @@ k=input('Masukkan jumlah klaster : ');
    end
    
    %Kalkulasi total energi, death node & node alive
-   total_energi(rnd)=energy;
+   total_energi(rnd)=total_energi2+energy;
+   total_energi2=total_energi(rnd);
    total_dn(rnd)=dead_nodes;
    total_na(rnd)=operating_nodes;
-   
+  
+   if(dead_nodes>=n)
+       break
+   end
    % Next Round %
-    % rnd= rnd +1;
+   rnd=rnd+1;
+end
+% Save file dalam bentuk file 
+writematrix(total_energi,'TE-kmeansplus');
+writematrix(total_dn,'TDN-kmeansplu');
+writematrix(total_na,'TNA-kmeansplus');
