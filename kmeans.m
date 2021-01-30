@@ -64,46 +64,18 @@ k=input('Masukkan jumlah klaster : ');
     energy=0;
 while rnd<=round
     rnd
-    %Penentua C1 Awal dengan mencari jarak terjauh dengan BS
+    %Proses memilih cluster secara acak
     startx=[];
     starty=[];
-    x=xlsread('node','A1:A100');
-    y=xlsread('node','B1:B100');
-    center=[startx starty]; %menyimpan nilai C1
-    d=[];
-    for i=1:n
-        SN(i).cluster=0;    % reseting cluster in which the node belongs to
-        SN(i).role=0;       % reseting node role
-        SN(i).chid=0;       % reseting cluster head id
-        
-        c=[SN(i).x SN(i).y]; %mengambil data node ke-i
-        distance=sqrt((sinkx-c(:,1))^2+(sinky-c(:,2))^2); %mengurangi jarak BS dengan node
-        d=[d distance]; % menyimpan index dan nilai jarak masing" node dengan BS
-    end
-    [e s]=max(d); %mencari nilai terbesar dari distance yang dipilih sebagai C1
-    center=[center;[x(s) y(s)]]; %menyimpan koordinat c1 dalam array
-    x(s)=[]; %mengosongkan kembali nilai x dan y
-    y(s)=[];
-    d=[];
-
-    %Proses mencari C selanjutnya
-    r=1;
-    while(r~=k)
-        for i=1:n
-            g=[SN(i).x SN(i).y]; %Mengambil data kordinat node ke i
-            ka=dsearchn(center,g); %Mencari node terdekat dengan data pusat klaster
-            nearestx=center(ka,1); %Mencari data terdekat pada nilai kordinat x
-            nearesty=center(ka,2); %Mencari data terdekat pada nilai kordinat y
-            distance=sqrt((nearestx-g(:,1))^2+(nearesty-g(:,2))^2); %Menghitung jarak node dengan cluster head
-            d=[d distance]; %Menyimpan nilai jarak dan indeksnya
-        end
-        [e s]=max(d); %Mencari data jarak dengan nilai max/tertinggi
-        center=[center;[x(s) y(s)]]; %Menyimpan data node dengan jarak tertinggi pada aray CH
-        SN(s).tel=SN(s).tel+1;
-        x(s)=[]; %mengosongkan kembali nilai x, y dan d
-        y(s)=[];
-        [r c]=size(center);
-        d=[];
+    center=[];
+    acak=[];
+    rng(1);
+    acak=randi(n,10,1);
+    for i=1:k
+        startx(i)=x(acak(i));
+        starty(i)=y(acak(i));
+        center(i,1)=startx(i);
+        center(i,2)=starty(i);
     end
     if(rnd==round) %Menampilkan data round terakhir
         figure(2) %Menampilkan koordinat titik CH pada WSN
@@ -117,61 +89,65 @@ while rnd<=round
             xlabel '(m)';
             ylabel '(m)'; 
         end 
-    end
-    
-    %Proses pengelompokan node dengan cluster
-    cx=center(:,1); %Menyimpan nilai kordinat x CH pada var cx
-    cy=center(:,2); %Menyimpan nilai kordinat y CH pada var cy
-    mean_oldx=cx; %menyimpan nilai x pusat klaster lama
-    mean_newx=cx; %menyimpan nilai x pusat klaster yang diperbaharui
-    mean_oldy=cy; %menyimpan nilai y pusat klaster lama
-    mean_newy=cy; %menyimpan nilai y pusat klaster yang diperbaharui
-    outputx=cell(k,1); %menyimpan data node x sesuai klaster
-    outputy=cell(k,1); %menyimpan data node y sesuai klaster
-    temp=0;
-    iter=1;
-    while(temp==0) %Melakukan perulangan untuk membentuk klaster hingga nilai CH tidak mengalami perubahan
-        mean_oldx=mean_newx; %menyamakan nilai pusat klaster lama dan baru
-        mean_oldy=mean_newy;
-        for(i=1:n) %perulangan mencari jarak setiap node
-            data=[];
-            for(j=1:length(cx)) %mencari jarak setiap node dengan setiap cluster head
-                data=[data sqrt((SN(i).x-cx(j))^2+(SN(i).y-cy(j))^2)];
-            end
-            [gc index]=min(data); %Mencari jarak terendah node dengan CH
-            
-            outputx{index}=[outputx{index} SN(i).x]; %Mengelompokkan data sesuai CH terdekat
-            outputy{index}=[outputy{index} SN(i).y]; %Mengelompokkan data sesuai CH terdekat
-            SN(i).cluster=index; %Menyimpan nilai cluster tiap node
-            SN(i).chid=index;
-            SN(i).dtch=min(data); %Menyimpan jarak node dengan pusat cluster
-        end
-        gmckx=[];
-        gmcky=[];
-        for(i=1:k) %Proses memperbarui nilai pusat CH 
-            gmckx=[gmckx mean(outputx{i})]; 
-            gmcky=[gmcky mean(outputy{i})];
-        end
-        cx=gmckx; %Menyimpan nilai terbaru CH
-        cy=gmcky;
-        mean_newx=cx; %Menyimpan nilai terbaru CH
-        mean_newy=cy;
-        finalx=0; %variabel keputusan untuk mengetahui nilai kordinat x CH sudah sama setiap iterasi
-        finaly=0; %variabel keputusan untuk mengetahui nilai kordinat y CH sudah sama setiap iterasi
-        if(mean_newx==mean_oldx) %Mengecek apakah nilai CH kordinat x sama dengan nilai CH pada iterasi sebelumnya
-            finalx=1;
-        end
-        if(mean_newy==mean_oldy) %Mengecek apakah nilai CH kordinat y sama dengan nilai CH pada iterasi sebelumnya
-            finaly=1;
-        end
-        if(finalx==1 && finaly==1) %Jika nilai sama maka akhiri perulangan dengan set temp=1
-            temp=1;
-        else %Jika tidak sama maka simpan nilai pusat CH baru pada bvariabel outputx dan outputy
-            outputx=cell(k,1);
-            outputy=cell(k,1);
-        end
-        iter=iter+1;
-    end
+     end
+     %Proses pengelompokan node dengan cluster
+     cx=center(:,1); %Menyimpan nilai kordinat x CH pada var cx
+     cy=center(:,2); %Menyimpan nilai kordinat y CH pada var cy
+     mean_oldx=cx; %menyimpan nilai x pusat klaster lama
+     mean_newx=cx; %menyimpan nilai x pusat klaster yang diperbaharui
+     mean_oldy=cy; %menyimpan nilai y pusat klaster lama
+     mean_newy=cy; %menyimpan nilai y pusat klaster yang diperbaharui
+     outputx=cell(k,1); %menyimpan data node x sesuai klaster
+     outputy=cell(k,1); %menyimpan data node y sesuai klaster
+     temp=0;
+     iter=1;
+
+     while(temp==0) %Melakukan perulangan untuk membentuk klaster hingga nilai CH tidak mengalami perubahan
+           mean_oldx=mean_newx; %menyamakan nilai pusat klaster lama dan baru
+           mean_oldy=mean_newy;
+           for i=1:n %perulangan mencari jarak setiap node
+               data=[];
+               for j=1:length(cx) %mencari jarak setiap node dengan setiap cluster head
+                   data=[data sqrt((SN(i).x-cx(j))^2+(SN(i).y-cy(j))^2)];
+               end
+               [gc index]=min(data); %Mencari jarak terendah node dengan CH 
+               outputx{index}=[outputx{index} SN(i).x]; %Mengelompokkan data sesuai CH terdekat
+               outputy{index}=[outputy{index} SN(i).y]; %Mengelompokkan data sesuai CH terdekat
+               SN(i).role=0;       % reseting node role
+               SN(i).cluster=index; %Menyimpan nilai cluster tiap node
+               SN(i).chid=index;
+               SN(i).dtch=min(data); %Menyimpan jarak node dengan pusat cluster
+           end
+           gmckx=[];
+           gmcky=[];
+           for i=1:k %Proses memperbarui nilai pusat CH 
+               %if(length(outputx{i}<=1) && length(outputy{i}<=1))
+                  %gmckx=outputx{i};
+                  %gmcky=outputy{i};
+               %end
+               gmckx=[gmckx mean(outputx{i})]; 
+               gmcky=[gmcky mean(outputy{i})];
+           end
+           cx=gmckx; %Menyimpan nilai terbaru CH
+           cy=gmcky;
+           mean_newx=cx; %Menyimpan nilai terbaru CH
+           mean_newy=cy;
+           finalx=0; %variabel keputusan untuk mengetahui nilai kordinat x CH sudah sama setiap iterasi
+           finaly=0; %variabel keputusan untuk mengetahui nilai kordinat y CH sudah sama setiap iterasi
+           if(mean_newx==mean_oldx) %Mengecek apakah nilai CH kordinat x sama dengan nilai CH pada iterasi sebelumnya
+              finalx=1;
+           end
+           if(mean_newy==mean_oldy) %Mengecek apakah nilai CH kordinat y sama dengan nilai CH pada iterasi sebelumnya
+              finaly=1;
+           end
+           if(finalx==1 && finaly==1) %Jika nilai sama maka akhiri perulangan dengan set temp=1
+              temp=1;
+           else %Jika tidak sama maka simpan nilai pusat CH baru pada bvariabel outputx dan outputy
+               outputx=cell(k,1);
+               outputy=cell(k,1);
+           end
+           iter=iter+1;
+     end 
     jml_iter(rnd)=iter;
     celldisp(outputx); %Menampilkan nilai pada kordinat x fix setiap node dan klaster
     celldisp(outputy); %Menampilkan nilai pada kordinat y fix setiap node dan klaster
@@ -280,6 +256,7 @@ while rnd<=round
                 SN(SN(i).chid).rop=rnd;
                 dead_nodes=dead_nodes +1;
                 operating_nodes= operating_nodes - 1;
+                SN(i).E=0;
              end
         end
        end  
@@ -289,6 +266,7 @@ while rnd<=round
             SN(i).cond=0;
             SN(i).chid=0;
             SN(i).rop=rnd;
+            SN(i).E=0;
         end
     end
 
@@ -306,6 +284,7 @@ while rnd<=round
              operating_nodes= operating_nodes - 1;
              SN(i).cond=0;
              SN(i).rop=rnd;
+             SN(i).E=0;
          end
      end
    end
@@ -323,6 +302,6 @@ while rnd<=round
    rnd=rnd+1;
 end
 % Save file dalam bentuk file 
-writematrix(total_energi,'TE-kmeansplus');
-writematrix(total_dn,'TDN-kmeansplu');
-writematrix(total_na,'TNA-kmeansplus');
+writematrix(total_energi,'TE-kmeans');
+writematrix(total_dn,'TDN-kmeans');
+writematrix(total_na,'TNA-kmeans');
