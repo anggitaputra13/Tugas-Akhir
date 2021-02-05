@@ -24,8 +24,9 @@ ERx=50*10^(-8); %Satuan joules/bit
 Eamp=13*10^(-8); %Satuan joules/bit/m^2 
 EDA=5*10^(-8); %Satuan joules/bit
 kk=4000; %unit bits
+k=8;
 rnd=1; %penanda iterasi
-round=150; %jumlah putaran/iterasi yang ditentukan
+round=400; %jumlah putaran/iterasi yang ditentukan
 x=xlsread('node','A1:A100');
 y=xlsread('node','B1:B100');
 %Membentuk Topologi Awal%
@@ -46,23 +47,26 @@ for i=1:n
     SN(i).rleft=0;  % rounds left for node to become available for Cluster Head election
     SN(i).re=Eo;    % residual energi pada node
     SN(i).jch=0;    % mengetahui berapa kali node sebagai CH
-    hold on;
+    SN(i).status=1;
     figure(1)
-    plot(xm,ym,SN(i).x,SN(i).y,'ob',sinkx,sinky,'*r');
+    plot(xm,ym,x,y,'ob',sinkx,sinky,'*r');
     title 'Wireless Sensor Network';
     xlabel '(m)';
     ylabel '(m)';
+    hold on;
+    grid on;
 end
 
 
 %%% Set Up Phase %%%
-%%Proses K-Means++%%
-k=input('Masukkan jumlah klaster : ');
+%%Proses K-Means%%
+%k=input('Masukkan jumlah klaster : ');
     % Reseting Previous Amount Of Cluster Heads In the Network %
 	CLheads=0;
     % Reseting Previous Amount Of Energy Consumed In the Network on the Previous Round %
     energy=0;
 while rnd<=round
+    disp('Proses Kmeans')
     rnd
     %Proses memilih cluster secara acak
     startx=[];
@@ -201,7 +205,7 @@ while rnd<=round
                 if(SN(j).rleft>0)
                     SN(j).rleft=SN(j).rleft-1;
                 end
-                if (SN(j).E>0) && (SN(j).rleft==0 && SN(j).role==0)
+                if (SN(j).E>0) && (SN(j).rleft==0) && (SN(j).role==0)
                     for l=1:n
                         if(SN(j).re>=SN(l).re && SN(j).cluster==SN(l).cluster) %jika re lebih besar pada klaster yang sama
                             SN(j).role=1;	% assigns the node role of acluster head
@@ -234,6 +238,8 @@ while rnd<=round
                      SN(i).dtch=sqrt((CL(j).x-SN(i).x)^2 + (CL(j).y-SN(i).y)^2);
                 end
             end
+        else
+             SN(i).dtch=0;
         end
     end
 %%%Steady State Phase%%%
@@ -251,22 +257,24 @@ while rnd<=round
             ERx=(Eelec+EDA)*k;
             energy=energy+ERx;
             SN(SN(i).chid).E=SN(SN(i).chid).E - ERx;
-             if SN(SN(i).chid).E<=0  % if cluster heads energy depletes with reception
+             if (SN(SN(i).chid).E<=0 && SN(SN(i).chid).status==1) % if cluster heads energy depletes with reception
                 SN(SN(i).chid).cond=0;
                 SN(SN(i).chid).rop=rnd;
                 dead_nodes=dead_nodes +1;
                 operating_nodes= operating_nodes - 1;
                 SN(i).E=0;
+                SN(i).status=0;
              end
         end
        end  
-        if SN(i).E<=0 % if nodes energy depletes with transmission
+        if (SN(i).E<=0 && SN(i).status==1)% if nodes energy depletes with transmission
             dead_nodes=dead_nodes +1;
             operating_nodes= operating_nodes - 1;
             SN(i).cond=0;
             SN(i).chid=0;
             SN(i).rop=rnd;
             SN(i).E=0;
+            SN(i).status=0;
         end
     end
 
@@ -279,12 +287,13 @@ while rnd<=round
             SN(i).re=SN(i).E;
             energy=energy+ETx;
          end
-         if (SN(i).E<=0)     % if cluster heads energy depletes with transmission
+         if (SN(i).E<=0 && SN(i).status==1)     % if cluster heads energy depletes with transmission
              dead_nodes=dead_nodes +1;
              operating_nodes= operating_nodes - 1;
              SN(i).cond=0;
              SN(i).rop=rnd;
              SN(i).E=0;
+             SN(i).status=0;
          end
      end
    end

@@ -22,14 +22,13 @@ for i=1:n
 end
 
 %kmeans; %Memanggil function kmeans
-
 %kmeanplus; %Memanggil function kmeanplus
 
 %Ploting jumlah dead nodes
 deadn1=load("TDN-kmeans.txt");
 deadn2=load("TDN-kmeansplus.txt");
 round=400;
-figure(4)
+figure(2)
 plot(round,n,1:round,deadn1(1:round),'r',1:round,deadn2(1:round),'b');
 title 'Jumlah Dead Node Selama Iterasi';
 xlabel 'Round';
@@ -41,7 +40,7 @@ legend('kmeans++','kmeans');
 na1=load("TNA-kmeans.txt");
 na2=load("TNA-kmeansplus.txt");
 round=400;
-figure(5)
+figure(3)
 plot(round,n,1:round,na1(1:round),'r',1:round,na2(1:round),'b');
 title 'Jumlah Node Hidup Selama Iterasi';
 xlabel 'Round';
@@ -52,7 +51,7 @@ legend('kmeans++','kmeans',"Location","eastoutside");
 %Ploting total konsumsi energi
 te1=load("TE-kmeans.txt");
 te2=load("TE-kmeansplus.txt");
-figure(6)
+figure(4)
 plot(1:round,te1(1:round),'r',1:round,te2(1:round),'b');
 title 'Total Konsumsi Energi Selama Iterasi';
 xlabel 'Round';
