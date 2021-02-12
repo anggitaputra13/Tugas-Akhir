@@ -72,12 +72,13 @@ while rnd<=round
     startx=[];
     starty=[];
     center=[];
-    acak=[];
-    rng(1);
-    acak=randi(n,10,1);
+    %acak=[];
+    %rng(1);
+    %acak=randi(n,8,1);
+    acak=xlsread('bilacak');
     for i=1:k
-        startx(i)=x(acak(i));
-        starty(i)=y(acak(i));
+        startx(i)=x(acak(i,rnd));
+        starty(i)=y(acak(i,rnd));
         center(i,1)=startx(i);
         center(i,2)=starty(i);
     end
