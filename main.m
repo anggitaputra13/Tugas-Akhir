@@ -34,7 +34,7 @@ title 'Jumlah Dead Node Selama Iterasi';
 xlabel 'Round';
 ylabel 'Dead Node';
 hold on;
-legend('kmeans++','kmeans');
+legend('LEACH-kmeans++','LEACH-kmeans');
 
 %Ploting jumlah node hidup
 na1=load("TNA-kmeans.txt");
@@ -46,7 +46,7 @@ title 'Jumlah Node Hidup Selama Iterasi';
 xlabel 'Round';
 ylabel 'Node Hidup';
 hold on;
-legend('kmeans++','kmeans',"Location","eastoutside");
+legend('LEACH-kmeans++','LEACH-kmeans',"Location","eastoutside");
 
 %Ploting total konsumsi energi
 te1=load("TE-kmeans.txt");
@@ -57,6 +57,6 @@ title 'Total Konsumsi Energi Selama Iterasi';
 xlabel 'Round';
 ylabel 'Joule';
 hold on;
-legend('kmeans','kmeans++',"Location","eastoutside");
+legend('LEACH-kmeans','LEACH-kmeans++',"Location","eastoutside");
 
 
