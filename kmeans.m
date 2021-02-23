@@ -317,4 +317,3 @@ disp('Rata-rata iterasi yang dilakukan yaitu');disp(rata)
 writematrix(total_energi,'TE-kmeans');
 writematrix(total_dn,'TDN-kmeans');
 writematrix(total_na,'TNA-kmeans');
-writematrix(jml_iter,'jiter-kmeans');
