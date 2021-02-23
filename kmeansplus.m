@@ -26,7 +26,7 @@ EDA=5*10^(-8); %Satuan joules/bit
 kk=4000; %unit bits
 rnd=1; %penanda iterasi
 round=400; %jumlah putaran/iterasi yang ditentukan
-k=8;
+k=10;
 x=xlsread('node','A1:A100');
 y=xlsread('node','B1:B100');
 %Membentuk Topologi Awal%
@@ -334,6 +334,9 @@ while rnd<=round
    % Next Round %
    rnd=rnd+1;
 end
+rata=sum(jml_iter)/400;
+disp('Rata-rata iterasi yang dilakukan yaitu');disp(rata)
+
 % Save file dalam bentuk file 
 writematrix(total_energi,'TE-kmeansplus');
 writematrix(total_dn,'TDN-kmeansplus');
